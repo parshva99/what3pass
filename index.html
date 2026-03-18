@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>passgen / parshva.dev</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0a0a;
+            --border: #222222;
+            --text: #e8e8e8;
+            --muted: #666666;
+            --sym-color: #c0a060;
+            --num-color: #60a080;
+            --font: 'JetBrains Mono', 'Fira Mono', 'Cascadia Code', monospace;
+        }
+
+        html,
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        nav {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.15s;
+        }
+
+        nav a:hover {
+            color: var(--text);
+        }
+
+        nav .logo {
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        nav .sep {
+            color: var(--border);
+        }
+
+        main {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 4rem 2rem 6rem;
+        }
+
+        .page-title {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.04em;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 3rem;
+        }
+
+        .pass-block {
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.75rem 1.5rem 1.5rem;
+            margin-bottom: 2rem;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pass-block-label {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            margin-bottom: 1rem;
+        }
+
+        #passDisplay {
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            line-height: 1.3;
+            word-break: break-all;
+            min-height: 1.5em;
+        }
+
+        .part-words {
+            color: var(--text);
+        }
+
+        .part-sym {
+            color: var(--sym-color);
+        }
+
+        .part-num {
+            color: var(--num-color);
+        }
+
+        .strength-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 1.25rem;
+        }
+
+        .strength-bar {
+            display: flex;
+            gap: 3px;
+        }
+
+        .seg {
+            width: 28px;
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            transition: background 0.3s;
+        }
+
+        .seg.fair {
+            background: #c0a060;
+        }
+
+        .seg.strong {
+            background: #60a080;
+        }
+
+        .strength-label {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .toggles {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.75rem;
+            flex-wrap: wrap;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 13px;
+            color: var(--muted);
+            font-family: var(--font);
+            background: transparent;
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .toggle:hover {
+            border-color: #444;
+            color: var(--text);
+        }
+
+        .toggle.on {
+            border-color: #444;
+            color: var(--text);
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: background 0.15s;
+        }
+
+        .toggle.on.num-toggle .dot {
+            background: var(--num-color);
+        }
+
+        .toggle.on.sym-toggle .dot {
+            background: var(--sym-color);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 0;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            background: transparent;
+            color: var(--muted);
+            font-family: var(--font);
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .btn:hover {
+            border-color: #444;
+            color: var(--text);
+        }
+
+        .btn:active {
+            opacity: 0.7;
+        }
+
+        .btn-primary {
+            background: var(--text);
+            color: var(--bg);
+            border-color: var(--text);
+        }
+
+        .btn-primary:hover {
+            background: #c8c8c8;
+            border-color: #c8c8c8;
+            color: var(--bg);
+        }
+
+        .word-count {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 1.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(6px);
+            background: var(--text);
+            color: var(--bg);
+            font-family: var(--font);
+            font-size: 12px;
+            padding: 7px 18px;
+            border-radius: 2px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        footer a {
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--text);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="https://parshva.dev" class="logo">parshva.dev</a>
+        <span class="sep">/</span>
+        <a href="#">passgen</a>
+    </nav>
+
+    <main>
+        <p class="page-title">tool</p>
+        <h1>passphrase generator</h1>
+        <p class="subtitle">three random words + optional symbol &amp; number. no tracking, no server, entirely
+            client-side.</p>
+
+        <div class="pass-block">
+            <div class="pass-block-label">YOUR PASSWORD</div>
+            <div id="passDisplay">—</div>
+            <div class="strength-row">
+                <div class="strength-bar">
+                    <div class="seg" id="s1"></div>
+                    <div class="seg" id="s2"></div>
+                    <div class="seg" id="s3"></div>
+                </div>
+                <span class="strength-label" id="strengthLabel"></span>
+            </div>
+        </div>
+
+        <div class="toggles">
+            <button class="toggle on num-toggle" id="tNum" onclick="toggle('numbers')">
+                <div class="dot"></div> include number
+            </button>
+            <button class="toggle on sym-toggle" id="tSym" onclick="toggle('symbols')">
+                <div class="dot"></div> include symbol
+            </button>
+        </div>
+
+        <div class="actions">
+            <button class="btn" onclick="generate()">&#8635; regenerate</button>
+            <button class="btn btn-primary" onclick="copyPass()">copy password</button>
+        </div>
+
+        <p class="word-count" id="wordCount"></p>
+    </main>
+
+    <footer>
+        <a href="https://parshva.dev">&#8592; back to parshva.dev</a>
+    </footer>
+
+    <div class="toast" id="toast">copied to clipboard</div>
+
+    <script>
+        const WORDS = "able,acid,aged,area,army,away,baby,back,ball,band,bank,base,bath,bear,beat,bell,best,bike,bird,blow,blue,body,bomb,bond,bone,book,boom,born,bowl,bulk,burn,busy,calm,card,care,cart,case,cash,cast,cave,cell,chip,city,clan,clap,clay,clip,club,clue,coal,coat,code,coil,coin,cold,cook,cool,cope,copy,cord,core,corn,cost,coup,crew,crop,cube,cure,curl,dark,data,date,dawn,dead,deal,deck,deep,deer,deny,desk,dial,diet,dime,dirt,disk,dive,dock,dome,done,door,dose,down,drag,draw,drip,drop,drum,dual,dull,dump,dune,dust,duty,each,earn,east,edge,emit,even,exam,face,fact,fade,fail,fair,fake,fall,fame,farm,fast,fate,feel,feet,fell,felt,fend,file,fill,film,find,fine,fire,firm,fish,fist,flag,flat,flip,flow,foam,fold,fond,food,fool,foot,ford,fork,form,fort,foul,four,free,fuel,full,fund,fuse,gain,gale,game,gang,gate,gear,gene,gift,girl,give,glad,glow,glue,goal,goat,gold,golf,gore,grab,gray,grid,grin,grip,grow,gulf,gust,hack,hair,half,hall,halt,hand,hang,hard,harm,harp,hash,hate,have,hawk,head,heal,heap,heat,heel,held,help,herb,here,hide,high,hill,hint,hire,hold,hole,home,hook,hope,horn,hose,host,huge,hull,hung,hunt,hurt,icon,idea,inch,iron,isle,item,jade,jail,jazz,jest,join,joke,jolt,junk,just,keen,keep,kill,kind,king,knot,know,lace,lack,lake,lamp,land,lane,lash,last,late,lava,lawn,lead,leaf,leak,lean,leap,left,lend,lens,less,liar,lick,lift,like,lime,limp,line,link,lion,list,live,load,lock,loft,lone,long,look,loop,lore,lose,loss,loud,love,luck,lung,lure,main,make,male,mall,mane,many,mark,mart,mask,mast,mate,maze,meal,mean,meet,melt,memo,mesh,mild,milk,mill,mind,mine,mint,miss,mist,mode,mold,mood,moon,move,much,mule,must,myth,nail,name,need,news,next,nice,nine,node,norm,nose,note,oath,open,oral,oven,pace,pack,page,pain,pair,pale,palm,park,part,pass,past,path,pave,peak,peel,peer,pick,pile,pine,pink,pipe,plan,play,plot,plow,plum,plus,pole,poll,pond,pool,poor,port,pose,post,pour,pray,prey,pull,pump,pure,push,race,rack,raid,rail,rain,rake,ramp,rang,rank,rare,rate,real,reap,reef,reel,rely,rent,rest,rice,rich,ride,ring,riot,rise,risk,road,roam,roar,robe,rock,role,roll,roof,room,root,rope,rose,rove,ruin,rule,rush,rust,safe,sage,sail,sake,sale,salt,sand,sane,save,seam,seal,seek,seem,self,sell,send,shed,ship,shoe,shop,shot,show,shut,sick,side,sift,sign,silk,sing,sink,site,size,skin,slip,slow,slug,snap,snow,soak,soar,sock,soft,soil,sold,sole,song,soon,sort,soul,sour,span,spin,spot,spur,star,stay,stem,step,stir,stop,stub,suit,sung,sunk,sure,swap,swim,tail,take,tale,talk,tall,tame,tank,tape,task,teal,team,tear,tell,tend,tent,term,test,tide,tilt,time,tiny,tire,toll,tone,took,tool,toss,tour,town,trap,tree,trim,trio,trip,true,tube,tuck,tune,turf,twin,type,undo,unit,upon,used,user,vain,vale,vane,vary,vast,veil,vein,verb,vest,view,vine,void,volt,vote,wade,wage,wake,walk,wall,wane,ward,warm,warp,wary,wave,weak,weld,went,west,wide,wild,will,wind,wine,wire,wise,wish,wolf,word,wore,work,worm,worn,wrap,yard,year,zero,zone,abode,abyss,acorn,acute,admit,adopt,adult,agile,agony,agree,alarm,album,alert,alike,align,alley,allot,allow,alone,along,alpha,alter,amber,ample,amuse,angel,anger,angle,ankle,annex,apart,apple,apply,apron,argue,arise,armor,aroma,array,arson,aside,asset,atlas,attic,audit,avoid,awake,award,awful,azure,bacon,badge,bagel,baker,basic,batch,beach,beard,beast,began,begin,being,below,bench,berth,bevel,birch,birth,bison,black,blade,blame,bland,blank,blast,blaze,bleak,blend,bless,blind,blink,block,blood,bloom,blown,bluff,blunt,blurt,blush,board,boast,boost,booth,bound,brace,braid,brake,brand,brave,brawl,breed,brick,bride,brief,brine,bring,brisk,broad,broil,brook,broom,broth,brown,brush,brute,build,built,bulge,bunny,burst,buyer,cabin,cache,camel,candy,canon,cargo,carry,catch,cause,cedar,chain,chair,chalk,chaos,charm,chart,chase,cheap,cheat,check,cheek,chess,chest,chick,chief,child,chill,chime,choir,chord,chunk,cider,clamp,clang,clash,clean,clear,clerk,cliff,climb,cling,cloak,clock,clone,close,cloth,clout,clown,cobra,comet,comic,comma,coral,couch,could,count,court,cover,covet,craft,crane,crave,crawl,craze,creak,cream,creek,crimp,cross,crowd,crown,cruel,crumb,crush,crust,crypt,curve,cycle,daily,dance,datum,daunt,dealt,death,debut,decal,decay,delta,dense,depth,derby,devil,digit,disco,ditch,diver,dizzy,dodge,dogma,doubt,dough,draft,drain,drama,drank,drape,drawn,dread,dream,drift,drink,drive,drone,drove,drown,dryer,dwarf,dwell,eagle,early,earth,eight,elect,elite,empty,endow,enjoy,enter,epoch,equal,essay,event,exact,exile,exist,extra,fable,faith,false,fancy,feast,fetch,fever,field,fifth,fifty,fight,final,finch,first,fixed,fizzy,flame,flank,flash,flask,fleet,flesh,flick,fling,flint,flock,flood,floor,flora,flute,flyer,focal,foggy,force,forge,forty,forum,found,frame,frank,fraud,freak,fresh,front,frost,froze,froth,fungi,funky,funny,genre,ghost,giant,given,gland,glare,glass,gleam,glide,glint,globe,gloom,gloss,glove,glyph,gnome,gorge,gouge,gourd,grace,grade,graft,grand,grant,graph,grasp,grass,grate,grave,graze,great,greed,greet,grief,grill,grind,groan,groin,gross,grout,grove,growl,grunt,guard,guess,guide,guise,gusto,habit,haven,hazel,heart,heavy,hedge,hefty,helix,hence,hinge,hitch,hoard,hobby,holly,honey,honor,horde,hotel,hound,hover,human,humid,humor,hunch,hyena,hyper,icing,ideal,idiom,igloo,image,imply,index,indie,infer,ingot,inlay,inlet,inner,input,irate,issue,ivory,judge,juice,juicy,jumbo,jumpy,karma,kayak,kebab,knack,knife,kneel,known,kudos,label,large,laser,latch,later,laugh,layer,lemon,level,light,limit,lingo,liver,llama,lodge,lofty,logic,lusty,lyric,magic,major,maker,manor,maple,march,media,mercy,merit,metal,micro,might,mimic,minor,minus,mirth,mixer,mocha,model,mogul,moist,money,mossy,motif,motor,motto,mount,mouth,movie,muggy,murky,music,naive,nerve,never,night,ninja,nitro,noble,noise,north,novel,nymph,occur,ocean,offer,omega,onion,onset,opera,optic,orbit,order,otter,outer,oxide,ozone,pansy,party,peach,pearl,pedal,penny,perch,peril,petal,petty,phase,phone,photo,piano,pixel,pizza,place,plain,plank,plant,plate,plaza,plead,pleat,pluck,plume,pilot,polka,poppy,power,prank,press,price,pride,prism,prize,probe,prone,proof,prose,proud,proxy,pulse,pupil,purge,query,quest,quota,quote,radar,radio,rally,ranch,range,rapid,raven,reach,realm,rebel,reign,relax,repay,rerun,reset,resin,ridge,risky,rival,river,rivet,robin,robot,rocky,rogue,roost,rouge,rough,round,route,rover,rowdy,rugby,ruler,rumor,rural,rusty,sadly,salsa,sandy,sauce,sauna,scald,scalp,scary,scarf,scene,scone,scoop,scout,scowl,scram,scrap,scrub,sedan,sense,serum,serve,setup,seven,shade,shaft,shake,shaky,shall,shame,shape,share,shark,sharp,shear,shelf,shell,shift,shine,shiny,shirt,shock,shore,short,shout,sigma,silly,since,sixth,sixty,skate,skill,skirt,skull,slang,slash,slate,sleek,sleep,slick,slide,slime,sling,slope,smart,smash,smear,smell,smile,smirk,smoke,snack,snail,snake,snare,sneak,sniff,snore,solar,solve,sonic,sorry,south,space,spare,spark,spawn,speak,spear,speck,spell,spend,spire,spite,split,spoil,spook,spoon,sport,spray,squad,squat,squid,stack,staff,stage,stain,stake,stale,stall,stamp,stand,stare,stark,start,stash,state,steal,steam,steel,steep,steer,stern,stiff,still,sting,stock,stomp,stone,stool,store,storm,story,stout,stove,stoic,strap,straw,stray,strip,strut,stuck,study,stump,stung,style,sugar,surge,swamp,swear,sweep,sweet,swift,swipe,swirl,swoop,sword,syrup,taffy,taint,tally,talon,taunt,teach,tempo,tense,tepid,terra,thick,thigh,three,threw,throw,throb,thumb,tiger,tidal,tinge,titan,title,toast,token,tonic,topaz,topic,total,touch,tough,toxic,trace,track,trade,trail,train,trait,tramp,trash,trawl,tread,treat,trend,trial,tribe,trick,tried,trout,trove,truck,truly,trump,trunk,trust,truth,tulip,tunic,turbo,twang,tweak,tweed,tweet,twice,twill,twist,ultra,uncut,under,unify,union,unite,until,upper,upset,urban,usher,usual,utter,vague,valid,valor,valve,vapor,vault,viola,viper,viral,virus,visor,vista,vital,vivid,vocal,vogue,vouch,wader,wafer,waltz,waste,watch,water,weary,weave,wedge,weird,whale,wheat,wheel,witch,witty,woman,women,world,worry,worst,worth,would,wound,wrath,yacht,young,youth,zilch,absent,accent,access,accord,accuse,achieve,action,active,actual,adjust,admire,afford,afraid,agenda,almost,always,amount,anchor,anneal,answer,anthem,antler,appear,arcade,around,ascend,aspire,assist,assure,attach,attack,attain,attend,august,aurora,autumn,avenue,battle,beacon,beauty,behind,behave,belief,better,beyond,blight,bounce,bridge,bright,bucket,budget,bullet,bundle,button,bypass,camera,candle,castle,casual,cattle,caution,center,chance,change,charge,cherry,choice,chrome,circle,clause,clever,client,coffee,column,combat,comedy,coming,common,corner,cosmos,cotton,course,crater,create,credit,crisis,custom,danger,debate,decide,decode,defeat,defend,define,degree,delete,demand,design,detect,differ,direct,domain,double,driven,durable,during,either,emerge,empire,enable,engage,engine,enough,ensure,entail,entire,entity,escape,evolve,except,expand,expect,expert,explore,extend,fabric,factor,fading,falcon,famine,famous,father,figure,filter,finger,finish,frozen,future,gallop,garden,garlic,gather,gentle,glacier,golden,gothic,govern,gravel,ground,growth,harbor,hardly,health,hidden,higher,ignite,impact,import,income,indeed,insane,inside,intent,invent,island,jungle,launch,leader,league,legend,length,lesson,letter,linear,locket,longer,looked,losing,lovely,magnet,manner,margin,market,matter,medium,member,memory,method,middle,mirror,mobile,modern,module,moment,mortal,mother,motion,muscle,narrow,nation,nature,nearby,needle,normal,notice,number,object,office,oldest,option,orange,origin,output,palace,parent,patron,pencil,people,pepper,period,permit,phrase,planet,player,pocket,policy,portal,prefer,pretty,profit,proper,protect,proven,public,puzzle,python,rabbit,radius,random,reason,recent,record,reduce,refuge,remain,render,repair,report,rescue,result,return,reveal,reward,rocket,scheme,screen,search,secret,sector,select,series,server,signal,silver,simple,single,sister,sketch,smooth,socket,spirit,spring,stable,static,status,stream,street,strike,string,strong,struck,submit,sunset,supply,survey,switch,symbol,system,target,theory,ticket,timber,toggle,travel,tunnel,unlock,update,upload,useful,valley,vector,vendor,vertex,visual,volume,wander,wanted,weapon,wealth,winter,wisdom,within,wizard,yellow,abrupt,absurd,aerial,affirm,afford,alpine,analog,animal,annual,anchor,angled,assume,atomic,barely,behind,bisect,bonded,bypass,capsule,carbon,casual,cipher,citrus,clover,cluster,coarse,cobalt,coffee,cohort,cosmic,covert,curved,damage,dampen,decide,defect,degree,depart,deploy,detach,detail,detect,differ,direct,divert,divide,donate,donut,dotted,driven,edging,effect,either,enable,encode,endure,engage,engine,ensure,erase,escher,evolve,filter,finite,fiscal,fitted,fixing,flawed,flying,follow,formed,fossil,frozen,funded,galley,gambit,garnet,gather,gravel,gravel,grotto,growth,guided,hallow,harbor,highly,hinged,hobbit,humane,hunter,hybrid,immune,import,inline,inward,jagged,jasper,jungle,kernel,kitten,lagoon,lancer,latent,layers,laying,linked,liquid,listen,lively,marked,matrix,merged,mirror,mobile,module,molten,motive,muffin,mutant,nested,nimble,normal,notch,nozzle,object,oblique,obtain,occupy,offset,opaque,orange,orient,orphan,output,paired,parrot,patrol,pebble,pencil,pepper,permit,petrol,pirate,placed,plasma,plural,polish,ponder,portal,powder,prefer,pretty,primed,proven,pursuit,radial,radiate,random,ranked,rapid,rarest,rated,rather,reform,relate,remote,remove,render,repeat,resist,retro,review,rewind,ribbed,robust,rotate,ruling,scaled,script,secure,seized,sensor,shadow,shifted,silent,silver,simple,sketch,skyline,slight,socket,solar,sorted,source,sphere,spiked,spiral,square,staged,static,stored,strain,stripe,subtle,suited,summit,sunken,supply,switch,system,tagged,tangle,tinted,toggle,tooled,traced,triple,turret,unique,united,unseen,upbeat,upward,useful,vector,velvet,vertex,viable,violet,walled,wanted,warden,warped,wiring,wonder,woven,bright,chroma,cobalt,crimson,eclipse,frozen,plasma,stealth,prism,quartz,rogue,zenith";
+
+        const wordList = WORDS.split(',');
+
+        const SYMS = ['!', '@', '#', '$', '%', '^', '&', '*', '-', '+', '=', '?'];
+        let opts = { numbers: true, symbols: true };
+        let currentRaw = '';
+
+        function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+        function cap(w) { return w[0].toUpperCase() + w.slice(1); }
+
+        function generate() {
+            const w1 = cap(rnd(wordList));
+            const w2 = cap(rnd(wordList));
+            const w3 = cap(rnd(wordList));
+            const wordsStr = w1 + w2 + w3;
+            const sym = opts.symbols ? rnd(SYMS) : '';
+            const num = opts.numbers ? String(Math.floor(Math.random() * 90) + 10) : '';
+
+            currentRaw = wordsStr + sym + num;
+
+            let html = '<span class="part-words">' + wordsStr + '</span>';
+            if (sym) html += '<span class="part-sym">' + sym + '</span>';
+            if (num) html += '<span class="part-num">' + num + '</span>';
+            document.getElementById('passDisplay').innerHTML = html;
+            updateStrength();
+        }
+
+        function updateStrength() {
+            const score = (opts.numbers && opts.symbols) ? 3 : (opts.numbers || opts.symbols) ? 2 : 1;
+            const cls = ['', 'fair', 'fair', 'strong'];
+            const label = ['', 'fair', 'good', 'strong'];
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById('s' + i).className = 'seg' + (i <= score ? ' ' + cls[score] : '');
+            }
+            document.getElementById('strengthLabel').textContent = label[score];
+        }
+
+        function toggle(key) {
+            opts[key] = !opts[key];
+            const el = document.getElementById(key === 'numbers' ? 'tNum' : 'tSym');
+            el.classList.toggle('on', opts[key]);
+            generate();
+        }
+
+        function copyPass() {
+            if (!currentRaw) return;
+            navigator.clipboard.writeText(currentRaw).catch(() => { });
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1800);
+        }
+
+        document.getElementById('wordCount').textContent = wordList.length.toLocaleString() + ' words in dictionary';
+        generate();
+    </script>
+</body>
+
+</html>
